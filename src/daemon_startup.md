@@ -61,3 +61,24 @@ TTY周りなどで不可解に感じたらこの辺をよく読んでみると�
 詳しくはここにも書いてある.
 http://docs.frrouting.org/projects/dev-guide/en/latest/logging.html
 
+
+最後に `frr_run()` を実行して, これで初めて FRR のdaemonの起動が開始する.
+`frr_run` は内部で, VTYの起動を行う, libfrr の multi threading framework
+を開始させる. multi threading framework の開始部分を簡単に省略すると
+以下のようになっている.
+
+```cpp
+voi frr_run(struct thread_master *master)
+{
+	frr_vty_serv();
+  ...
+	struct thread thread;
+	while (thread_fetch(master, &thread))
+		thread_call(&thread)
+}
+```
+
+FRRのMulti thread frameworkは Event駆動型のMulti Thread Frameworkであり,
+それぞれのEventごとにいthreadを起動させることができる.
+Multi Thread Frameworkに関してのより詳しい説明は以下に示されている.
+http://docs.frrouting.org/projects/dev-guide/en/latest/process-architecture.html#
