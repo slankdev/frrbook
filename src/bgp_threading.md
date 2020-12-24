@@ -1,5 +1,57 @@
 # BGPd Multi Threading and Event Loop Architecture
 
+## Structure `bgp_master`, `bgp`
+
+`struct bgp_master` は bgpdのdaemon自体を管理する構造体だ.
+threadmasterの構造体や, 全てのbgpインスタンス等などを包含する.
+要するに一番大きなグローバル変数用の構造体だ.
+簡単にメンバーを省略しつつ示す.
+
+```cpp
+struct bgp_master {
+	struct list *bgp;
+	struct thread_master *master;
+	struct list *listen_sockets;
+	uint16 port;
+	struct labelpool labelpool;
+	...
+};
+```
+
+`struct bgp` は単一のbgpインスタンスを管理する構造体だ.
+bgpdは複数のbgp instanceを管理できる. 例えば以下のようなconfig
+でbgpdを動かした場合, bgpインスタンスの数は三つである.
+
+```
+router bgp 65001
+ bgp router-id 1.1.1.1
+ !
+ segment-routing srv6
+  locator loc0
+ !
+ address-family ipv4 vpn
+ exit-address-family
+!
+router bgp 65001 vrf vrf10
+ bgp router-id 1.1.1.1
+ !
+ address-family ipv4 unicast
+  sid vpn export auto
+	rt both 65001:10
+ exit-address-family
+!
+router bgp 65001 vrf vrf20
+ bgp router-id 1.1.1.1
+ !
+ address-family ipv4 unicast
+  sid vpn export auto
+	rt both 65001:20
+ exit-address-family
+!
+```
+
+## Function `main`
+
 ```cpp
 int main()
 {
@@ -14,10 +66,89 @@ int main()
 void bgp_init()
 {
 	...
-	bgp_pthread_init()
+	bgp_zebra_init(bm->master, instance);
+	bgp_pthread_init();
 	...
 }
+```
 
+`bgp_init` で pthreadの初期化や, zclientの初期化等を行っている.
+これをみるとわかる通り, bgpdの内部では, threadmaster以外に二つの
+pthreadを起動していることがわかる. 要するに多分3multi threadingで
+稼働しているはずである.
+
+## default `thread_master` initialization
+
+defaultのthreadmasterはどのように起動し始めるのかを整理する.
+まず, `bgp_zebra_init`関数では, `bm->master` (default threadmaster) を使って
+zclientの初期化を行う. 以下のように, zclientは threadmasterを引数に
+して初期化を行っている.
+
+```cpp
+// bgpd/bgp_zebra.c
+
+struct zclient *zclient;
+void bgp_zebra_init(struct thread_master *m)
+{
+	zclient = zclient_new(m, ...);
+	zclient_init(zclient, ZEBRA_ROUTE_BGP, ...);
+	zclient->zebra_connected = ...;
+	...
+}
+```
+
+zclientの実態は関数ポインタの集合であり,
+ZAPIによる通信に応じて登録した関数を呼び出すようになっている.
+また `zclient_new` 関数では, zclientをmallocして初期化するだけ.
+
+```cpp
+struct zclient *zclient_new(struct thread_master* master)
+{
+	struct zclient *z;
+	z = malloc(...)
+	z->ibuf = stream_new(..)
+	z->obuf = stream_new(..)
+	z->master = master;
+}
+```
+
+`zclient_init` 関数ではZAPIを実行するための
+event task を設定している. こんな感じにzclientは自動で
+connectしに行って, 可能ならばreadし続ける非同期event chain
+に突入するようだ.
+おそらく zserver との接続が切断されたあとも
+`zclient_event(ZCLIENT_SCHEDULE)` を実行するだけで
+再接続するように動かすことが可能だろう. よくできている.
+
+```cpp
+void zclient_init(zclient, ...)
+{
+	...
+	zclient_event(ZCLIENT_SCHEDULE, zclient);
+}
+
+void zclient_event(enum event ev, struct zclient *zc)
+{
+	switch (ev) {
+	case ZCLIENT_SCHEDULE:
+		thread_add_event(zc->master, zclient_connect, zclient, ...);
+		break;
+	case ZCLIENT_CONNECT:
+		thread_add_timer(zc->master, zclient_connect, zclient, ...);
+		break;
+	case ZCLIENT_READ:
+		thread_add_read(zc->master, zclient_read, zclient, ...);
+		break;
+	}
+}
+```
+
+## non-default `thread_master` initialization
+
+defaultでないtaskの残り二つがどのように初期化されていくかを整理する.
+以下にコードを省略して示す.
+
+```cpp
 struct frr_pthraed *bgp_pth_io;
 struct frr_pthraed *bgp_pth_ka;
 void bgp_pthreads_init()
