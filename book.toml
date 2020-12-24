@@ -1,0 +1,6 @@
+[book]
+authors = ["Hiroki Shirokura"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Understanding FRRouting Internals"
