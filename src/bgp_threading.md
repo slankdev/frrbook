@@ -204,5 +204,49 @@ pthreadだと思う. (なんかこの辺で俺のバグが入っていてもお�
 これはCLI起因なのだろう. CLIで設定された瞬間に必要に応じて
 event loopにtaskを登録するはずだ.
 
+### Creating BGP instance
+
+多分CLIにconfigが投入されると巡り巡って, `bgp_create()`関数が
+呼び出されるはずである. なので`bgp_create`を起点にどのように
+BGPのインスタンスのthreadingが行われるかを整理する.
+
+```
+struct bgp *bgp_create(...)
+{
+	struct bgp *bgp = malloc(...);
+	...
+	bgp_lock(bgp);
+	bgp_process_queue_init(bgp);
+	...
+	bgp->peer = list_new();
+	...
+	FOREACH_AFI_SAFI(afi, safi) {
+		bgp->route[afi, safi]     = bgp_table_init(bgp, afi, safi);
+		bgp->aggregate[afi, safi] = bgp_table_init(bgp, afi, safi);
+		bgp->rib[afi, safi]       = bgp_table_init(bgp, afi, safi);
+		...
+	}
+	...
+	update_bgp_group_init(bgp);
+	...
+	return bgp;
+}
+```
+
+`bgp_process_queue_init` 関数では, `bgp->process_queue` の初期化をする.
+以下の `work_queue_new`関数で生成される work-queueは `frr/lib` 配下にある
+work-queueフレームワークである.
+
+```
+extern struct bgp_master bm;
+...
+void bgp_process_queue_init(struct bgp *bgp)
+{
+	if (!bgp->process_queue) {
+		bgp->process_queue = work_queue_new(bm->master, ...)
+	}
+}
+```
+
 ### BGP Passive connection
 ### BGP Active connection
