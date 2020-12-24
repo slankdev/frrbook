@@ -105,4 +105,55 @@ threadmaster は [`struct thread_master`](https://github.com/FRRouting/frr/blob/
 それぞれのdaemon ごとに一つの threadmaster が存在している.
 
 Daemonの起動時には小さな task を設定し, それが起因してたくさんの複雑な処理が
-開始し始めるようになっている.
+開始し始めるようになっている. 以下にtaskの種類を示す
+
+| name | description |
+| :----: | :-- |
+|`THREAD_READ`    | ファイル記述子が読み取り可能になるのを待ってから実行する |
+|`THREAD_WIRTE`   | ファイル記述子が書き込み可能になるのを待ってから実行する |
+|`THREAD_TIMER`   | スケジュールされてから一定時間が経過した後に実行される |
+|`THREAD_EVENT`   | 何かしらのイベント起因で実行される, Event自体のタイプとセット起動する物だと理解している. たとえば bgpd は FSM(Finite State Model)のフレームワークの上に実装されているけど, それぞれのイベントごとに実行されるtaskはこのtypeで表現されている(はず). Event Typeはintで表現されている. |
+|`THREAD_READY`   | レディキューのタスクに内部的に使用されるタイプ(まったくわかっていない) |
+|`THREAD_UNUSED`  | 意味不明j |
+|`THREAD_EXECUTE` | 実行中を表すタイプ. 実行されるタスクは全てこのtypeに実行直前に書き換えられる. |
+
+例えば tcpのecho server を複数のclientに対して実施しようとした時.
+server-fd (listening socket) と accepted-fd (client peer socket) の二種類が存在する.
+このようなケースの時, それぞれの eventごとに非同期にうまく並行処理をしたい時はい可能のように書くはず.
+
+```cpp
+struct thread_masgter m;
+
+int client_send_func(void *)
+{
+  int ret = write(client_fd, buf, buflen)
+	return ret;
+}
+
+int client_read_func(void *)
+{
+  int ret = read(client_fd, buf, sizeof(buf));
+	if (ret < 0) {
+		return -1;
+	}
+	thread_add_write(m, client_send_func, NULL, client_fd, NULL);
+	return 0;
+}
+
+int listen_func(void *)
+{
+  int client_fd = accept()
+	thread_add_read(m, client_read_func, NULL, client_fd, NULL);
+	return 0;
+}
+
+int main()
+{
+  listen_fd = socket()
+
+	struct thread th;
+	thread_add_read(m, listen_func, NULL, listen_fd, NULL);
+	while (thread_fetch(m, &th))
+		thread_call(&th)
+}
+```
