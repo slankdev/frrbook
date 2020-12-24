@@ -157,3 +157,6 @@ int main()
 		thread_call(&th)
 }
 ```
+
+このようにして全てのdaemonはうまい具合の非同期なevent loopのうえで素晴らしい
+routing protocolを動かしているっぽい...
