@@ -53,6 +53,15 @@ protocol番号, logger, yang-tree 等々の情報を持つが, それらの情�
 実行する. この部分はそれぞれのdaemonごとに固有の処理を行うため, 今は
 強く意識する必要はない.
 
+### Function `frr_init`
+
+`frr_init` 関数は, `struct thread_master*` を返す.
+それぞれの daemon はこの threadmasterを用いて非同期イベントループを
+ぶん回す.
+
+これだけなら簡単だが, BGPdとかはベットでpthreadもつかったりしているので
+すごく複雑になっているようにみえる.
+
 ### Function `frr_config_fork`
 
 そして `frr_config_fork()` を実行する.
