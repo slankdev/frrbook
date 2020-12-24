@@ -198,3 +198,11 @@ KA threadは, `bgp_keepalives_{start,stop}` で初期化されており,
 pthreadだと思う. (なんかこの辺で俺のバグが入っていてもおかしくはない...)
 基本的には, pthread を生で使って, timeradd
 で関数を呼び出していくようになっているみたいだ.
+
+## Actual BGP instance execution
+
+これはCLI起因なのだろう. CLIで設定された瞬間に必要に応じて
+event loopにtaskを登録するはずだ.
+
+### BGP Passive connection
+### BGP Active connection
