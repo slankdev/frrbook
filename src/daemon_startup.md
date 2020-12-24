@@ -1,5 +1,5 @@
 
-## Daemon Startup
+# Daemon Startup
 
 FRRではzebra, bgpd, isisd, etc.. 等のたくさんのデーモンが稼働する.
 これらのdaemonは frr/lib 配下に存在する共通のフレームワークを利用して
@@ -40,6 +40,8 @@ int main(int argc, char **argv)
 }
 ```
 
+### Function `frr_preinit`
+
 まず `frr_preinit` を呼び出すことでFRR上でのデーモン情報を初期化する.
 FRRのデーモンは共通して, config, backup-config, running-config vty-port番号,
 protocol番号, logger, yang-tree 等々の情報を持つが, それらの情報は
@@ -51,6 +53,8 @@ protocol番号, logger, yang-tree 等々の情報を持つが, それらの情�
 実行する. この部分はそれぞれのdaemonごとに固有の処理を行うため, 今は
 強く意識する必要はない.
 
+### Function `frr_config_fork`
+
 そして `frr_config_fork()` を実行する.
 このタイミングでdaemonは必要に応じて daemonize fork をしたりする.
 daemonize 処理のタイミングでSignalハンドラの処理等も色々と行う.
@@ -61,6 +65,7 @@ TTY周りなどで不可解に感じたらこの辺をよく読んでみると�
 詳しくはここにも書いてある.
 http://docs.frrouting.org/projects/dev-guide/en/latest/logging.html
 
+### Function `frr_run`
 
 最後に `frr_run()` を実行して, これで初めて FRR のdaemonの起動が開始する.
 `frr_run` は内部で, VTYの起動を行う, libfrr の multi threading framework
@@ -80,5 +85,24 @@ voi frr_run(struct thread_master *master)
 
 FRRのMulti thread frameworkは Event駆動型のMulti Thread Frameworkであり,
 それぞれのEventごとにいthreadを起動させることができる.
+
+## Multi Thread Framework
+
 Multi Thread Frameworkに関してのより詳しい説明は以下に示されている.
-http://docs.frrouting.org/projects/dev-guide/en/latest/process-architecture.html#
+[Process Architecture](http://docs.frrouting.org/projects/dev-guide/en/latest/process-architecture.html#)
+
+
+ここからは *thread*, *threadmaster* という用語を用いて構造を簡単に整理する.
+この *thread* は libeventでいう Event または Task のことを示す.
+公式docいわく, threadmaster はそのまま threadmaster と読んで, thread のことを
+task と読んでいるようなのでそうやって説明する.
+
+多分 thread という単位でたくさんの処理をイベントごとに登録することができて,
+それが実態になった物のことを task と読んでいるんだと理解している.
+
+threadmaster は [`struct thread_master`](https://github.com/FRRouting/frr/blob/7c08b70a533627c2dee0df28ea9111818fd541d0/lib/thread.h#L70) で表現されている.
+この構造体は, global state objectで, thread のコンテキスト等を保持している.
+それぞれのdaemon ごとに一つの threadmaster が存在している.
+
+Daemonの起動時には小さな task を設定し, それが起因してたくさんの複雑な処理が
+開始し始めるようになっている.
