@@ -4,7 +4,7 @@
 int main()
 {
 	...
-  bgp_init()
+	bgp_init()
 	...
 	bgp_pthread_run()
 	frr_run()
@@ -30,16 +30,16 @@ void bgp_pthreads_init()
 		.start = bgp_keepalives_start,
 		.stop = bgp_keepalives_stop,
 	};
-  bgp_pth_io = frr_pthread_new(&io, "BGP I/O thread", "bgpd_io");
-  bgp_pth_ka = frr_pthread_new(&ka, "BGP Keepalives thread", "bgpd_ka");
+	bgp_pth_io = frr_pthread_new(&io, "BGP I/O thread", "bgpd_io");
+	bgp_pth_ka = frr_pthread_new(&ka, "BGP Keepalives thread", "bgpd_ka");
 }
 
 void bgp_pthread_run()
 {
-  frr_pthread_run(bgp_pth_io, NULL);
-  frr_pthread_run(bgp_pth_ka, NULL);
-  frr_pthread_wait_running(bgp_pth_io);
-  frr_pthread_wait_running(bgp_pth_ka);
+	frr_pthread_run(bgp_pth_io, NULL);
+	frr_pthread_run(bgp_pth_ka, NULL);
+	frr_pthread_wait_running(bgp_pth_io);
+	frr_pthread_wait_running(bgp_pth_ka);
 }
 ```
 

@@ -19,13 +19,13 @@ static struct frr_daemon_info bgpd_di;
 ...
 int main(int argc, char **argv)
 {
-  ...
-  frr_preinit(&bgpd_di, argc, argv)
+	...
+	frr_preinit(&bgpd_di, argc, argv)
 	frr_opt_add(...)
 	while (1) {
 	  //parse opt
 	}
-  ...
+	...
 
 	bgp_master_init(frr_init(), buffer_size)
 	bgp_error_init()
@@ -85,7 +85,7 @@ http://docs.frrouting.org/projects/dev-guide/en/latest/logging.html
 voi frr_run(struct thread_master *master)
 {
 	frr_vty_serv();
-  ...
+	...
 	struct thread thread;
 	while (thread_fetch(master, &thread))
 		thread_call(&thread)
