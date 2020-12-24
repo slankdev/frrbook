@@ -48,4 +48,22 @@ void bgp_pthread_run()
 pthreadを起動していることがわかる. 要するに多分3multi threadingで
 稼働しているはずである.
 
+### BGP I/O Thread
 
+IO threadは `frr_pthread_atr_default` を利用しているが,
+これは `lib/frr_pthread.c` にあらかじめ用意されたテンプレートだ.
+これだけだと特に何もすることはないのだが, 多分この先, socketに対する
+read/write の関数をこの thread に `thread_add_read` か何かで登録して
+動かすのだろう. 名前の通りならば...
+ひとまず IO thread は FRRのevent loopとして動作している.
+`bgp_pth_io` グローバル変数は, `bgpd/bgp_io.c` で参照されていて,
+ここで多分色々と event loop が設定されるんだろう.
+
+### BGP Keepalives Thread
+
+KA threadは, `bgp_keepalives_{start,stop}` で初期化されており,
+このスレッドは event loop 方式ではなく動作しているようだ.
+このthreadは多分bgp keepalive を peer ごとに定期的に送信するための
+pthreadだと思う. (なんかこの辺で俺のバグが入っていてもおかしくはない...)
+基本的には, pthread を生で使って, timeradd
+で関数を呼び出していくようになっているみたいだ.
