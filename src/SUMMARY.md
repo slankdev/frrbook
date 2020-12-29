@@ -7,3 +7,4 @@
 1. [frr/bgpd BGP UPDATE Recv     ](./bgp_update_recv.md)
 1. [frr/bgpd BGP UPDATE Send     ](./bgp_update_send.md)
 1. [frr/bgpd BGP VNC RFAPI       ](./bgp_rfapi.md      )
+1. [Upstream Guide               ](./upstream.md       )
