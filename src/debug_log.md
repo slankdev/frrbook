@@ -1,6 +1,6 @@
 ## Debug log misc
 
-```
+```cpp
 #define C_RED "\x1b[31m"
 #define C_GRN "\x1b[32m"
 #define C_YEL "\x1b[33m"

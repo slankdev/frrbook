@@ -91,3 +91,23 @@ bgp_attr_prefix_sid()
 {
 }
 ```
+
+## Best Path Selection
+
+以下のdebug commandで debug logを確認することができるようになる.
+運用時は適宜 prefix を絞って実施するべし.
+```
+debug bgp 0::/0
+```
+
+まずBGPのRIBに対しての認識を整理する必要がある.
+BGP RIBは以下のような状態を持っている
+
+(とりあえず以下は適当に書いている)
+```
+struct bgp_rib_entry {
+  uint16_t flag;
+#define FLAG_RIB_VALID
+#define FLAG_RIB_BESTPATH
+};
+```
