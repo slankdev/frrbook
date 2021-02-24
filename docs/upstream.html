@@ -1,0 +1,304 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Upstream Guide                - Understanding FRRouting Internals</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction                 </a></li><li class="chapter-item expanded "><a href="debug_log.html"><strong aria-hidden="true">2.</strong> frr/lib Debbuging Hands On   </a></li><li class="chapter-item expanded "><a href="daemon_startup.html"><strong aria-hidden="true">3.</strong> frr/lib Daemon Startup       </a></li><li class="chapter-item expanded "><a href="bgp_threading.html"><strong aria-hidden="true">4.</strong> frr/bgpd Event Loop Threading</a></li><li class="chapter-item expanded "><a href="bgp_update_recv.html"><strong aria-hidden="true">5.</strong> frr/bgpd BGP UPDATE Recv     </a></li><li class="chapter-item expanded "><a href="bgp_update_send.html"><strong aria-hidden="true">6.</strong> frr/bgpd BGP UPDATE Send     </a></li><li class="chapter-item expanded "><a href="bgp_rfapi.html"><strong aria-hidden="true">7.</strong> frr/bgpd BGP VNC RFAPI       </a></li><li class="chapter-item expanded "><a href="bgp_struct_index.html"><strong aria-hidden="true">8.</strong> frr/bgpd BGP Structure Index </a></li><li class="chapter-item expanded "><a href="bgp_func_index.html"><strong aria-hidden="true">9.</strong> frr/bgpd BGP Function Index  </a></li><li class="chapter-item expanded "><a href="upstream.html" class="active"><strong aria-hidden="true">10.</strong> Upstream Guide               </a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Understanding FRRouting Internals</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#upstream-guide-for-dummies" id="upstream-guide-for-dummies">Upstream Guide for Dummies</a></h1>
+<h2><a class="header" href="#check-list" id="check-list">Check list</a></h2>
+<ul>
+<li><input disabled="" type="checkbox"/>
+unit test を実行する</li>
+<li><input disabled="" type="checkbox"/>
+自分の追加した topotest を実行する</li>
+</ul>
+<h2><a class="header" href="#具体例" id="具体例">具体例</a></h2>
+<p>BGP SRv6 VPNを FRRにcontributionした時に, 手元環境で全ての動作は問題なく
+動いているように見えたが, FRRの CI の unit testで失敗が生じた時を例に進めていく.</p>
+<pre><code>~/frr/tests/bgpd# ./test_mpath
+BGP Multipath Tests Run at Tue Dec 29 08:03:07 2020
+Test bgp maximum-paths config: OK
+&amp;&amp;
+
+2020/12/29 08:03:07 Assertion `*list' failed in file lib/linklist.c, line 342, function list_delete
+2020/12/29 08:03:07 Backtrace:
+2020/12/29 08:03:07 _zlog_assert_failed+0x38           7f9566a923d8     7ffe96a0bcb0 /home/ubuntu/frr/lib/.libs/libfrr.so.0 (mapped at 0x7f9566a34000)
+2020/12/29 08:03:07 list_delete+0x55                   7f9566a915e5     7ffe96a0bcc0 /home/ubuntu/frr/lib/.libs/libfrr.so.0 (mapped at 0x7f9566a34000)
+2020/12/29 08:03:07 bgp_free+0x194                     55c3d03d52d4     7ffe96a0bce0 /home/ubuntu/frr/tests/bgpd/.libs/test_mpath (mapped at 0x55c3d0319000)
+2020/12/29 08:03:07 bgp_delete+0x48d                   55c3d03d83fd     7ffe96a0bd60 /home/ubuntu/frr/tests/bgpd/.libs/test_mpath (mapped at 0x55c3d0319000)
+2020/12/29 08:03:07 main+0x135                         55c3d0355535     7ffe96a0bdb0 /home/ubuntu/frr/tests/bgpd/.libs/test_mpath (mapped at 0x55c3d0319000)
+2020/12/29 08:03:07 __libc_start_main+0xe7             7f9565c94bf7     7ffe96a0be10 /lib/x86_64-linux-gnu/libc.so.6 (mapped at 0x7f9565c73000)
+2020/12/29 08:03:07 _start+0x2a                        55c3d03579fa     7ffe96a0bed0 /home/ubuntu/frr/tests/bgpd/.libs/test_mpath (mapped at 0x55c3d0319000)
+2020/12/29 08:03:07 Current thread not known/applicable
+log: showing active allocations in memory group libfrr
+log: memstats:  Buffer                        :      1 *         24
+log: memstats:  Hash                          :      4 * (variably sized)
+log: memstats:  Hash Bucket                   :      1 *         32
+log: memstats:  Hash Index                    :      2 * (variably sized)
+log: memstats:  Link List                     :      8 *         40
+log: memstats:  Link Node                     :      4 *         24
+log: memstats:  Skip List                     :      2 *         56
+log: memstats:  Skip Node                     :      4 *        160
+log: memstats:  Stream                        :      2 *      23208
+log: memstats:  Thread                        :      1 *        168
+log: memstats:  Thread master                 :      4 * (variably sized)
+log: memstats:  Thread Poll Info              :      2 *       8192
+log: memstats:  Thread stats                  :      1 *         72
+log: memstats:  Typed-hash bucket             :      1 * (variably sized)
+log: memstats:  Typed-heap array              :      1 *        576
+log: memstats:  VRF                           :      1 *        216
+log: memstats:  Work queue                    :      1 *        152
+log: memstats:  Work queue name string        :      1 *         16
+log: memstats:  Zclient                       :      1 *       3520
+log: showing active allocations in memory group logging subsystem
+log: showing active allocations in memory group bgpd
+log: memstats:  BGP instance                  :      1 *       9512
+log: memstats:  BGP EVPN MH Information       :      1 *         40
+log: showing active allocations in memory group rfapi
+Aborted (core dumped)
+</code></pre>
+<p>このケースでは, ぱっと見 <code>bgp_delete()</code> で何かおかしいことが起きているなと
+考えることができる. よりくわしいことは, core file が出力されるのでそこを
+よくみることで確認できる</p>
+<pre><code>~/frr/tests# ls -l test_mpath_core-*
+-rw------- 1 root root 1118208 Dec 29 07:29 test_mpath_core-sig_6-pid_12766.dmp
+-rw------- 1 root root 1118208 Dec 29 08:02 test_mpath_core-sig_6-pid_3608.dmp
+-rw------- 1 root root 1118208 Dec 29 08:12 test_mpath_core-sig_6-pid_5336.dmp
+
+~/frr/tests# gdb bgpd/.libs/test_mpath test_mpath_core-sig_6-pid_3608.dmp
+...
+(gdb) bt
+#0  __GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:51
+#1  0x00007f397b738921 in __GI_abort () at abort.c:79
+#2  0x00007f397c5173fd in _zlog_assert_failed (assertion=assertion@entry=0x7f397c57c220 &quot;*list&quot;, file=file@entry=0x7f397c57c1e2 &quot;lib/linklist.c&quot;, line=line@entry=342, function=function@entry=0x7f397c57c290 &lt;__func__.9217&gt; &quot;list_delete&quot;) at lib/log.c:317
+#3  0x00007f397c5165e5 in list_delete (list=list@entry=0x55b222c79b58) at lib/linklist.c:342
+#4  0x000055b2213ee2d4 in bgp_srv6_cleanup (bgp=0x55b222c77660) at bgpd/bgpd.c:1326
+#5  bgp_free (bgp=bgp@entry=0x55b222c77660) at bgpd/bgpd.c:3675
+#6  0x000055b2213f13fd in bgp_unlock (bgp=0x55b222c77660) at ./bgpd/bgpd.h:2113
+#7  bgp_delete (bgp=0x55b222c77660) at bgpd/bgpd.c:3623
+#8  0x000055b22136e535 in cleanup_test (t=0x55b221734c40 &lt;test_bgp_cfg_maximum_paths&gt;) at tests/bgpd/test_mpath.c:435
+#9  run_tests (tests=0x55b221734960 &lt;all_tests&gt;, fail_count=&lt;synthetic pointer&gt;, pass_count=&lt;synthetic pointer&gt;, num_tests=&lt;optimized out&gt;) at tests/bgpd/test_mpath.c:470
+#10 main () at tests/bgpd/test_mpath.c:489
+</code></pre>
+<p>このように確認すると, <code>bgp_srv6_cleanup</code> 関数のなか. 具体的には <code>bgpd/bgpd.c:1326</code> が注目すべき
+ポイントであることもわかる.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="bgp_func_index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="bgp_func_index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>

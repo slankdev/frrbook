@@ -1,0 +1,374 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>frr/lib Daemon Startup        - Understanding FRRouting Internals</title>
+        
+        
+
+
+        <!-- Custom HTML head -->
+        
+
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        
+        <link rel="icon" href="favicon.svg">
+        
+        
+        <link rel="shortcut icon" href="favicon.png">
+        
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        
+        <link rel="stylesheet" href="css/print.css" media="print">
+        
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        
+        <link rel="stylesheet" href="fonts/fonts.css">
+        
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="introduction.html"><strong aria-hidden="true">1.</strong> Introduction                 </a></li><li class="chapter-item expanded "><a href="debug_log.html"><strong aria-hidden="true">2.</strong> frr/lib Debbuging Hands On   </a></li><li class="chapter-item expanded "><a href="daemon_startup.html" class="active"><strong aria-hidden="true">3.</strong> frr/lib Daemon Startup       </a></li><li class="chapter-item expanded "><a href="bgp_threading.html"><strong aria-hidden="true">4.</strong> frr/bgpd Event Loop Threading</a></li><li class="chapter-item expanded "><a href="bgp_update_recv.html"><strong aria-hidden="true">5.</strong> frr/bgpd BGP UPDATE Recv     </a></li><li class="chapter-item expanded "><a href="bgp_update_send.html"><strong aria-hidden="true">6.</strong> frr/bgpd BGP UPDATE Send     </a></li><li class="chapter-item expanded "><a href="bgp_rfapi.html"><strong aria-hidden="true">7.</strong> frr/bgpd BGP VNC RFAPI       </a></li><li class="chapter-item expanded "><a href="bgp_struct_index.html"><strong aria-hidden="true">8.</strong> frr/bgpd BGP Structure Index </a></li><li class="chapter-item expanded "><a href="bgp_func_index.html"><strong aria-hidden="true">9.</strong> frr/bgpd BGP Function Index  </a></li><li class="chapter-item expanded "><a href="upstream.html"><strong aria-hidden="true">10.</strong> Upstream Guide               </a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky bordered">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Understanding FRRouting Internals</h1>
+
+                    <div class="right-buttons">
+                        
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                        
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#daemon-startup" id="daemon-startup">Daemon Startup</a></h1>
+<p>FRRではzebra, bgpd, isisd, etc.. 等のたくさんのデーモンが稼働する.
+これらのdaemonは frr/lib 配下に存在する共通のフレームワークを利用して
+動作する. 要するに ospfd も isisd も実際はほとんど同じような起動方法
+を行うことになっている. このchapterではその内容に関して整理する.</p>
+<p>まずbgpdの起動方法をそれぞれみてみることにしよう.
+BGPは実際はpthreadを用いてmulti threadモデルで動作しているため
+詳しい方式に関しては後ほど詳しく説明する.
+bgpdの起動の流れ(main関数)を簡単にしめす.</p>
+<pre><code class="language-cpp:bgpd/bgp_main.c">#include &lt;zebra.h&gt;
+...
+extern struct bgp_master *bm;
+static struct frr_daemon_info bgpd_di;
+...
+int main(int argc, char **argv)
+{
+	...
+	frr_preinit(&amp;bgpd_di, argc, argv)
+	frr_opt_add(...)
+	while (1) {
+	  //parse opt
+	}
+	...
+
+	bgp_master_init(frr_init(), buffer_size)
+	bgp_error_init()
+	bgp_vrf_init()
+	...
+	bgp_init(instance)
+	...
+	frr_config_fork()
+	bgp_gr_apply_running_config()
+	bgp_pthreads_run()
+	frr_run(bm-&gt;master)
+}
+</code></pre>
+<h3><a class="header" href="#function-frr_preinit" id="function-frr_preinit">Function <code>frr_preinit</code></a></h3>
+<p>まず <code>frr_preinit</code> を呼び出すことでFRR上でのデーモン情報を初期化する.
+FRRのデーモンは共通して, config, backup-config, running-config vty-port番号,
+protocol番号, logger, yang-tree 等々の情報を持つが, それらの情報は
+<code>struct frr_daemon_info</code> に記録されている.
+新しく daemon を追加しようとする開発者でなければ,
+基本的にはこの構造体を理解する必要はないと思われる.</p>
+<p>その後, <code>bgp_master_init()</code>, <code>bgp_error_init()</code> 等のbgpd固有の初期化関数を
+実行する. この部分はそれぞれのdaemonごとに固有の処理を行うため, 今は
+強く意識する必要はない.</p>
+<h3><a class="header" href="#function-frr_init" id="function-frr_init">Function <code>frr_init</code></a></h3>
+<p><code>frr_init</code> 関数は, <code>struct thread_master*</code> を返す.
+それぞれの daemon はこの threadmasterを用いて非同期イベントループを
+ぶん回す.</p>
+<p>これだけなら簡単だが, BGPdとかはベットでpthreadもつかったりしているので
+すごく複雑になっているようにみえる.</p>
+<h3><a class="header" href="#function-frr_config_fork" id="function-frr_config_fork">Function <code>frr_config_fork</code></a></h3>
+<p>そして <code>frr_config_fork()</code> を実行する.
+このタイミングでdaemonは必要に応じて daemonize fork をしたりする.
+daemonize 処理のタイミングでSignalハンドラの処理等も色々と行う.
+FRRのdeamonはこの辺をかなりwrapした実装になっているので, Signal処理や
+TTY周りなどで不可解に感じたらこの辺をよく読んでみると良い.</p>
+<p>このタイミングに loggerの初期化もしているはず.
+詳しくはここにも書いてある.
+http://docs.frrouting.org/projects/dev-guide/en/latest/logging.html</p>
+<h3><a class="header" href="#function-frr_run" id="function-frr_run">Function <code>frr_run</code></a></h3>
+<p>最後に <code>frr_run()</code> を実行して, これで初めて FRR のdaemonの起動が開始する.
+<code>frr_run</code> は内部で, VTYの起動を行う, libfrr の multi threading framework
+を開始させる. multi threading framework の開始部分を簡単に省略すると
+以下のようになっている.</p>
+<pre><code class="language-cpp">voi frr_run(struct thread_master *master)
+{
+	frr_vty_serv();
+	...
+	struct thread thread;
+	while (thread_fetch(master, &amp;thread))
+		thread_call(&amp;thread)
+}
+</code></pre>
+<p>FRRのMulti thread frameworkは Event駆動型のMulti Thread Frameworkであり,
+それぞれのEventごとにいthreadを起動させることができる.</p>
+<h2><a class="header" href="#multi-thread-framework" id="multi-thread-framework">Multi Thread Framework</a></h2>
+<p>Multi Thread Frameworkに関してのより詳しい説明は以下に示されている.
+<a href="http://docs.frrouting.org/projects/dev-guide/en/latest/process-architecture.html#">Process Architecture</a></p>
+<p>ここからは <em>thread</em>, <em>threadmaster</em> という用語を用いて構造を簡単に整理する.
+この <em>thread</em> は libeventでいう Event または Task のことを示す.
+公式docいわく, threadmaster はそのまま threadmaster と読んで, thread のことを
+task と読んでいるようなのでそうやって説明する.</p>
+<p>多分 thread という単位でたくさんの処理をイベントごとに登録することができて,
+それが実態になった物のことを task と読んでいるんだと理解している.</p>
+<p>threadmaster は <a href="https://github.com/FRRouting/frr/blob/7c08b70a533627c2dee0df28ea9111818fd541d0/lib/thread.h#L70"><code>struct thread_master</code></a> で表現されている.
+この構造体は, global state objectで, thread のコンテキスト等を保持している.
+それぞれのdaemon ごとに一つの threadmaster が存在している.</p>
+<p>Daemonの起動時には小さな task を設定し, それが起因してたくさんの複雑な処理が
+開始し始めるようになっている. 以下にtaskの種類を示す</p>
+<table><thead><tr><th align="center">name</th><th align="left">description</th></tr></thead><tbody>
+<tr><td align="center"><code>THREAD_READ</code></td><td align="left">ファイル記述子が読み取り可能になるのを待ってから実行する</td></tr>
+<tr><td align="center"><code>THREAD_WIRTE</code></td><td align="left">ファイル記述子が書き込み可能になるのを待ってから実行する</td></tr>
+<tr><td align="center"><code>THREAD_TIMER</code></td><td align="left">スケジュールされてから一定時間が経過した後に実行される</td></tr>
+<tr><td align="center"><code>THREAD_EVENT</code></td><td align="left">何かしらのイベント起因で実行される, Event自体のタイプとセット起動する物だと理解している. たとえば bgpd は FSM(Finite State Model)のフレームワークの上に実装されているけど, それぞれのイベントごとに実行されるtaskはこのtypeで表現されている(はず). Event Typeはintで表現されている.</td></tr>
+<tr><td align="center"><code>THREAD_READY</code></td><td align="left">レディキューのタスクに内部的に使用されるタイプ(まったくわかっていない)</td></tr>
+<tr><td align="center"><code>THREAD_UNUSED</code></td><td align="left">意味不明j</td></tr>
+<tr><td align="center"><code>THREAD_EXECUTE</code></td><td align="left">実行中を表すタイプ. 実行されるタスクは全てこのtypeに実行直前に書き換えられる.</td></tr>
+</tbody></table>
+<p>例えば tcpのecho server を複数のclientに対して実施しようとした時.
+server-fd (listening socket) と accepted-fd (client peer socket) の二種類が存在する.
+このようなケースの時, それぞれの eventごとに非同期にうまく並行処理をしたい時はい可能のように書くはず.</p>
+<pre><code class="language-cpp">struct thread_masgter m;
+
+int client_send_func(void *)
+{
+  int ret = write(client_fd, buf, buflen)
+	return ret;
+}
+
+int client_read_func(void *)
+{
+  int ret = read(client_fd, buf, sizeof(buf));
+	if (ret &lt; 0) {
+		return -1;
+	}
+	thread_add_write(m, client_send_func, NULL, client_fd, NULL);
+	return 0;
+}
+
+int listen_func(void *)
+{
+  int client_fd = accept()
+	thread_add_read(m, client_read_func, NULL, client_fd, NULL);
+	return 0;
+}
+
+int main()
+{
+  listen_fd = socket()
+
+	struct thread th;
+	thread_add_read(m, listen_func, NULL, listen_fd, NULL);
+	while (thread_fetch(m, &amp;th))
+		thread_call(&amp;th)
+}
+</code></pre>
+<p>このようにして全てのdaemonはうまい具合の非同期なevent loopのうえで素晴らしい
+routing protocolを動かしているっぽい...</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="debug_log.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="bgp_threading.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a rel="prev" href="debug_log.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a rel="next" href="bgp_threading.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            window.playground_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
