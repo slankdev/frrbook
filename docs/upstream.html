@@ -249,6 +249,16 @@ Aborted (core dumped)
 <img src="img/upstream_checkpatch_valid.png" alt="valid case" /></p>
 <p>ダメなケース(おそらく許されないケース)
 <img src="img/upstream_checkpatch_invalid.png" alt="" /></p>
+<h3><a class="header" href="#checkpatchを手元で実行する方法" id="checkpatchを手元で実行する方法">checkpatchを手元で実行する方法</a></h3>
+<p>もちろんPR branchがpushされると自動で実行されるが, 手元のlocal環境でも実行することができる.</p>
+<p>slankdev/frr:hoge という branchを利用している場合</p>
+<pre><code>git remote add upstream ...
+git fetch upstream
+
+git diff upstream/master /tmp/main.diff
+git checkout upstream/master
+./tools/checkpatch.sh /tmp/main.diff .
+</code></pre>
 
                     </main>
 
