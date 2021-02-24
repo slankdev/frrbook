@@ -7,3 +7,7 @@
 - `NH_VALID` かどうか, だったり, `LABELED_VALID` みたいな要素が保存されている.
 - CHANGED みたいな flagがあって, それが0な間は
   キャッシュとして動作するようになっている.
+
+### `struct bgp_path_info`
+
+- definition: https://github.com/FRRouting/frr/blob/master/bgpd/bgp_route.h
