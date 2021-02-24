@@ -91,3 +91,21 @@ http://docs.frrouting.org/projects/dev-guide/en/latest/workflow.html#code-format
 FRRではpatchをreviewする時に事前に機械がpatchをcheckし, formatが正しいかをreportしてくれる.
 例えば以下の画像のようなerrorがでる.
 
+正しいケース(おそらく許されるケース)
+![valid case](img/upstream_checkpatch_valid.png)
+
+ダメなケース(おそらく許されないケース)
+![](img/upstream_checkpatch_invalid.png)
+
+### checkpatchを手元で実行する方法
+もちろんPR branchがpushされると自動で実行されるが, 手元のlocal環境でも実行することができる.
+
+slankdev/frr:hoge という branchを利用している場合
+```
+git remote add upstream ...
+git fetch upstream
+
+git diff upstream/master /tmp/main.diff
+git checkout upstream/master
+./tools/checkpatch.sh /tmp/main.diff .
+```
