@@ -1,7 +1,7 @@
 dev: build open
 
-OPEN_TARGET=bgp_struct_index
+OPEN_TARGET=upstream
 open:
 	open book/$(OPEN_TARGET).html
 build:
-	mdbook build --open
+	mdbook build -d docs

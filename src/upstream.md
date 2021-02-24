@@ -84,3 +84,10 @@ Aborted (core dumped)
 このように確認すると, `bgp_srv6_cleanup` 関数のなか. 具体的には `bgpd/bgpd.c:1326` が注目すべき
 ポイントであることもわかる.
 
+## Executing Check PatchS
+
+http://docs.frrouting.org/projects/dev-guide/en/latest/workflow.html#code-formatting
+
+FRRではpatchをreviewする時に事前に機械がpatchをcheckし, formatが正しいかをreportしてくれる.
+例えば以下の画像のようなerrorがでる.
+
