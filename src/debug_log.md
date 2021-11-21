@@ -4,6 +4,9 @@
 #define C_RED "\x1b[31m"
 #define C_GRN "\x1b[32m"
 #define C_YEL "\x1b[33m"
+#define C_BLU "\x1b[34m"
+#define C_PPL "\x1b[35m"
+#define C_CYN "\x1b[36m"
 #define C_DEF "\x1b[39m"
 #define C_BG_RED "\x1b[41m"
 #define C_BG_DEF "\x1b[49m"
@@ -23,4 +26,5 @@
     snprintf(str, sizeof(str), fmt, __VA_ARGS__); \
     zlog_debug(C_YEL "%s:%d:%s() %s" C_DEF, __FILE__, __LINE__, __func__, str); \
   } while(0)
+  
 ```
